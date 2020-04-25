@@ -27,11 +27,11 @@ clone_repo() {
     perl init-repository
   fi
 
-  cp -r $cache_src $src_dir
+  cp -rv $cache_src $src_dir
 
   cd $src_dir
   git checkout "v${number}"
-  perl init-repository
+  perl init-repository -f
 }
 
 install() {
