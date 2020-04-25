@@ -2,8 +2,8 @@
 
 release_tags() {
   git ls-remote --tags --sort=version:refname git://code.qt.io/qt/qt5.git \
-  | cut -f2 \
-  | sed -n 's:refs/tags/v\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)$:\1:p'
+    | cut -f2 \
+    | sed -n 's:refs/tags/v\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)$:\1:p'
 }
 
 versions=$(release_tags)
