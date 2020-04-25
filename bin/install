@@ -12,7 +12,7 @@ clone_repo() {
 
   # used to cache the qt repositiory because it and its submodules
   # are huuuugggeeeee...
-  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache/asdf-qt}"
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/asdf-qt"
   cache_src="$cache_dir/src"
 
   if [ ! -d "$cache_src" ]
