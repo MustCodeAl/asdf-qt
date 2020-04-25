@@ -10,9 +10,25 @@ clone_repo() {
   # drop the -dev from the version number (if exists)
   number=${version%"-dev"}
 
-  git clone git://code.qt.io/qt/qt5.git $src_dir
-  cd $src_dir
+  # used to cache the qt repositiory because it and its submodules
+  # are huuuugggeeeee...
+  cache_dir="${XDG_CACHE_HOME:-$HOME/.cache/asdf-qt}"
+  cache_src="$cache_dir/src"
 
+  if [ ! -d "$cache_src" ]
+  then
+    mkdir -p "$cache_dir"
+
+    git clone git://code.qt.io/qt/qt5.git $cache_src
+    cd $cache_src
+
+    git checkout "v${number}"
+    perl init-repository
+  fi
+
+  cp -r $cache_src $src_dir
+
+  cd $src_dir
   git checkout "v${number}"
   perl init-repository
 }
