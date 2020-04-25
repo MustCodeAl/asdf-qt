@@ -28,4 +28,4 @@ jobs:
       - name: Test the plugin
         run: |
           . $HOME/asdf/asdf.sh
-          GITHUB_API_TOKEN=${{secrets.GITHUB_TOKEN}} asdf plugin-test qt $GITHUB_WORKSPACE 'qt --version' --asdf-tool-version ${{matrix.version}} --asdf-plugin-gitref $GITHUB_SHA
+          GITHUB_API_TOKEN=${{secrets.GITHUB_TOKEN}} asdf plugin-test qt $GITHUB_WORKSPACE 'qmake --version' --asdf-tool-version ${{matrix.version}} --asdf-plugin-gitref $GITHUB_SHA
