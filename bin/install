@@ -39,7 +39,10 @@ main() {
   local n_cores=$4
 
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
+
+  # cleanup on failures
   trap "rm -rf $tmp_dir" EXIT
+  trap "rm -rf $install_path" EXIT
 
   src_dir="$tmp_dir/src"
   clone_repo $src_dir $version
