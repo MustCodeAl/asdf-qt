@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 
 release_tags() {
+  # returns space seperated numbers from version tags on the
+  # remote repositiory. e.g. "5.1.0 5.1.1 5.2.0 5.2.1 5.3.0 5.3.1"
   git ls-remote --tags --sort=version:refname git://code.qt.io/qt/qt5.git \
     | cut -f2 \
     | sed -n 's:refs/tags/v\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)$:\1:p'
 }
 
-versions=$(release_tags)
+expand_dev_options() {
+  # Takes space seperated version number and adds a complimentary *-dev version
+  # e.g. "5.1.0 5.1.0-dev 5.1.1 5.1.1-dev 5.2.0 5.2.0-dev"
+  sed 's:\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\):\1 \1-dev:g'
+}
+
+versions=$(release_tags | expand_dev_options)
 
 echo $versions
