@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -eE
 set -o pipefail
 
 clone_repo() {
@@ -44,7 +44,7 @@ main() {
 
   # cleanup on failures
   trap "rm -rf $tmp_dir" EXIT
-  trap "rm -rf $install_path" EXIT
+  trap "rm -rf $install_path" ERR
 
   src_dir="$tmp_dir/src"
   clone_repo $src_dir $version
