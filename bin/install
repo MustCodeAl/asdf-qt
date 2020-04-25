@@ -7,10 +7,13 @@ clone_repo() {
   local src_dir=$1
   local version=$2
 
+  # drop the -dev from the version number (if exists)
+  number=${version%"-dev"}
+
   git clone git://code.qt.io/qt/qt5.git $src_dir
   cd $src_dir
 
-  git checkout "v${version}"
+  git checkout "v${number}"
   perl init-repository
 }
 
@@ -19,16 +22,28 @@ install() {
   local build_dir=$2
   local install_dir=$3
   local n_cores=$4
+  local version=$5
 
   mkdir $build_dir
   cd $build_dir
 
-  $src_dir/configure \
-    -prefix $install_dir \
-    -opensource \
-    -confirm-license \
-    -nomake examples \
-    -nomake tests
+  if [[ $version == *"-dev" ]]
+  then
+    $src_dir/configure \
+      -developer-build \
+      -prefix $install_dir \
+      -opensource \
+      -confirm-license \
+      -nomake examples \
+      -nomake tests
+  else
+    $src_dir/configure \
+      -prefix $install_dir \
+      -opensource \
+      -confirm-license \
+      -nomake examples \
+      -nomake tests
+  fi
 
   make -j$n_cores
   make install
@@ -46,11 +61,16 @@ main() {
   trap "rm -rf $tmp_dir" EXIT
   trap "rm -rf $install_path" ERR
 
-  src_dir="$tmp_dir/src"
-  clone_repo $src_dir $version
+  if [[ -z "${ASDF_QT_EXISTING_SRC}" ]]
+  then
+    src_dir="$tmp_dir/src"
+    clone_repo $src_dir $version
+  else
+    src_dir="$ASDF_QT_EXISTING_SRC"
+  fi
 
   build_dir="$tmp_dir/build"
-  install $src_dir $build_dir $install_path $n_cores
+  install $src_dir $build_dir $install_path $n_cores $version
 }
 
 main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
