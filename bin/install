@@ -18,6 +18,7 @@ install() {
   local src_dir=$1
   local build_dir=$2
   local install_dir=$3
+  local n_cores=$4
 
   mkdir $build_dir
   cd $build_dir
@@ -29,6 +30,7 @@ install() {
     -nomake examples \
     -nomake tests
 
+  make -j$n_cores
   make install
 }
 
@@ -48,7 +50,7 @@ main() {
   clone_repo $src_dir $version
 
   build_dir="$tmp_dir/build"
-  install $src_dir $build_dir $install_path
+  install $src_dir $build_dir $install_path $n_cores
 }
 
 main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
