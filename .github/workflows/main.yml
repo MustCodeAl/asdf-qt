@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macOS-latest]
         version: [5.14.2]
 
     runs-on: ${{ matrix.os }}
@@ -14,9 +14,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Prerequisites
+      - name: Ubuntu Prerequisites
         if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo software-properties-gtk
           sudo apt-get build-dep qt5-default
           sudo apt-get install libxcb-xinerama0-dev
       - name: Install asdf
