@@ -14,7 +14,7 @@ clone_repo() {
   perl init-repository
 }
 
-install() {
+build() {
   local src_dir=$1
   local build_dir=$2
   local install_dir=$3
@@ -28,8 +28,6 @@ install() {
     -confirm-license \
     -nomake examples \
     -nomake tests
-
-  mv $build_dir/qtbase $install_dir
 }
 
 install_qt() {
@@ -45,7 +43,10 @@ install_qt() {
   clone_repo $src_dir $version
 
   build_dir="$tmp_dir/build"
-  build $src_dir $build_dir $install_path
+  build $src_dir $build_dir
+
+  # install
+  mv $build_dir/qtbase $install_path
 }
 
 install_qt $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
