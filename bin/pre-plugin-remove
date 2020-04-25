@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/asdf-qt"
-
-rm -rf $cache_dir
