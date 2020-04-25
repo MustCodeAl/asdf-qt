@@ -29,7 +29,7 @@ install() {
     -nomake examples \
     -nomake tests
 
-  make install
+  mv $build_dir/qtbase $install_dir
 }
 
 install_qt() {
