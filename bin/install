@@ -14,7 +14,7 @@ clone_repo() {
   perl init-repository
 }
 
-build() {
+install() {
   local src_dir=$1
   local build_dir=$2
   local install_dir=$3
@@ -23,14 +23,16 @@ build() {
   cd $build_dir
 
   $src_dir/configure \
-    -developer-build \
+    -prefix $install_dir \
     -opensource \
     -confirm-license \
     -nomake examples \
     -nomake tests
+
+  make install
 }
 
-install_qt() {
+main() {
   local install_type=$1
   local version=$2
   local install_path=$3
@@ -43,10 +45,7 @@ install_qt() {
   clone_repo $src_dir $version
 
   build_dir="$tmp_dir/build"
-  build $src_dir $build_dir
-
-  # install
-  mv $build_dir/qtbase $install_path
+  install $src_dir $build_dir $install_path
 }
 
-install_qt $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
+main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
