@@ -18,6 +18,7 @@ clone_repo() {
   if [ ! -d "$cache_src" ]
   then
     mkdir -p "$cache_dir"
+    trap "rm -rf $cache_dir" ERR
 
     git clone git://code.qt.io/qt/qt5.git $cache_src
     cd $cache_src
@@ -77,13 +78,8 @@ main() {
   trap "rm -rf $tmp_dir" EXIT
   trap "rm -rf $install_path" ERR
 
-  if [[ -z "${ASDF_QT_EXISTING_SRC}" ]]
-  then
-    src_dir="$tmp_dir/src"
-    clone_repo $src_dir $version
-  else
-    src_dir="$ASDF_QT_EXISTING_SRC"
-  fi
+  src_dir="$tmp_dir/src"
+  clone_repo $src_dir $version
 
   build_dir="$tmp_dir/build"
   install $src_dir $build_dir $install_path $n_cores $version
