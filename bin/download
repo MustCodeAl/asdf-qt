@@ -86,8 +86,12 @@ main() {
   local install_path=$3
   local download_path=$4
 
+  tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
+  echo $tmp_dir
+
   # cleanup on failures
-  # trap "rm -rf '$download_path/*'" ERR
+  trap "rm -rf $tmp_dir" EXIT
+  trap "rm -rf $download_path" ERR
 
   # drop the -dev from the version number (if exists)
   number=${version%"-dev"}
@@ -101,7 +105,10 @@ main() {
   repo_url="${base_url}/$(host)_$(arch)/$(target)/qt${major}_${mushed}"
   meta_url="${repo_url}/Updates.xml"
 
-  all_package_names="$(packages $meta_url)"
+  # aqtinstall just targets by default 'qt.qt5.5113.clang_64', 'qt.5113.clang_64'
+  # so maybe other packages are optional enviroment vars ASDF_QT_*
+  # all_package_names="$(packages $meta_url)"
+  all_package_names="qt.qt${major}.${mushed}.$(compiler) qt.${mushed}.$(compiler)"
 
   for package_name in $all_package_names
   do
@@ -110,10 +117,18 @@ main() {
     for archive_name in $all_archive_names
     do
       package_url="${repo_url}/${package_name}/${archive_name}"
-      dest_uri="${download_path}/${archive_name}"
+      dest_uri="${tmp_dir}/${archive_name}"
+      # should download these in parrelel
       curl -L $package_url --output $dest_uri
+      # brew install p7zip required. Though apple Archive Utility app seems to work
+      # but need to reproduce file unzipping over the top. Also need to look at ubuntu
+      7z x -aoa -bd -y $dest_uri -o$tmp_dir
     done
   done
+
+  mv $tmp_dir/$number/$(compiler) $download_path
+
+  # aqtinstall also makes some .conf / . ini files at the end
 }
 
 if [ -z "$ASDF_INSTALL_TYPE" ]; then
