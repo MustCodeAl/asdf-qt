@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+set -eE
+set -o pipefail
+
+host() {
+  if [[ "$(uname)" = "Darwin" ]]; then
+    echo "mac"
+  elif [[ "$(uname)" = "Linux" ]]; then
+    echo "linux"
+  else
+    echo "Unsupported platform: $(uname)" >&2
+    exit 1
+  fi
+}
+
+arch() {
+  if [[ "$(uname -m)" = "x86" ]]; then
+    echo "x86"
+  elif [[ "$(uname -m)" = "x86_64" ]]; then
+    echo "x64"
+  else
+    echo "Unsupported architecture: $(uname -m)." >&2
+    exit 1
+  fi
+}
+
+target() {
+  echo "desktop"
+}
+
+compiler() {
+  if [[ "$(host)" = "mac" ]]; then
+    echo "clang_64"
+  elif [[ "$(host)" = "linux" && "$(arch)" = "x86" ]]; then
+    echo "gcc"
+  elif [[ "$(host)" = "linux" && "$(arch)" = "x64" ]]; then
+    echo "gcc_64"
+  else
+    echo "Unknown compiler choice" >&2
+    exit 1
+  fi
+}
+
+packages() {
+  local meta_url=$1
+
+  meta=$(curl -s $meta_url)
+
+  package_count=$(echo $meta | xmllint --xpath "count(/Updates/PackageUpdate)" -)
+
+  all_names=""
+
+  for i in $(seq 1 $package_count)
+  do
+    name=$(echo $meta | xmllint --xpath "/Updates/PackageUpdate[$i]/Name/text()" -)
+    all_names="$all_names $name"
+  done
+
+  echo $all_names
+}
+
+package_archives() {
+  local meta_url=$1
+  local package_name=$2
+
+  meta=$(curl -s $meta_url)
+
+  version=$(echo $meta | xmllint --xpath "/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()" -)
+  archives=$(echo $meta | xmllint --xpath "/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::DownloadableArchives/text()" - 2> /dev/null)
+
+  if [ $? -eq 0 ]; then
+    archives=$(echo $archives | sed 's:, : :g' | sed "s/[^ ]* */${version}&/g")
+    echo $archives
+  else
+      echo ""
+  fi
+}
+
+main() {
+  local install_type=$1
+  local version=$2
+  local install_path=$3
+  local download_path=$4
+
+  # cleanup on failures
+  # trap "rm -rf '$download_path/*'" ERR
+
+  # drop the -dev from the version number (if exists)
+  number=${version%"-dev"}
+  # take just the major number (pre first ".")
+  major=${number%%.*}
+  # drop all the points (5.11.3 -> 5113)
+  mushed=${number//.}
+
+  # Make report and meta data endpoints
+  base_url="https://download.qt.io/online/qtsdkrepository"
+  repo_url="${base_url}/$(host)_$(arch)/$(target)/qt${major}_${mushed}"
+  meta_url="${repo_url}/Updates.xml"
+
+  all_package_names="$(packages $meta_url)"
+
+  for package_name in $all_package_names
+  do
+    all_archive_names="$(package_archives $meta_url $package_name)"
+
+    for archive_name in $all_archive_names
+    do
+      package_url="${repo_url}/${package_name}/${archive_name}"
+      dest_uri="${download_path}/${archive_name}"
+      curl -L $package_url --output $dest_uri
+    done
+  done
+}
+
+if [ -z "$ASDF_INSTALL_TYPE" ]; then
+  echo "ASDF_INSTALL_TYPE enviroment variable required"
+  exit 1
+fi
+
+  if [ -z "$ASDF_INSTALL_VERSION" ]; then
+  echo "ASDF_INSTALL_VERSION enviroment variable required"
+  exit 1
+fi
+
+  if [ -z "$ASDF_INSTALL_PATH" ]; then
+  echo "ASDF_INSTALL_PATH enviroment variable required"
+  exit 1
+fi
+
+  if [ -z "$ASDF_DOWNLOAD_PATH" ]; then
+  echo "ASDF_DOWNLOAD_PATH enviroment variable required"
+  exit 1
+fi
+
+main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_DOWNLOAD_PATH
+# ASDF_INSTALL_TYPE=version ASDF_INSTALL_VERSION=5.11.3 ASDF_INSTALL_PATH=./install ASDF_DOWNLOAD_PATH=./download ./bin/download
