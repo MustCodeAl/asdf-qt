@@ -87,7 +87,6 @@ main() {
   local download_path=$4
 
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
-  echo $tmp_dir
 
   # cleanup on failures
   trap "rm -rf $tmp_dir" EXIT
