@@ -66,8 +66,11 @@ package_archives() {
 
   meta=$(curl -s $meta_url)
 
-  version=$(echo $meta | xmllint --xpath "/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()" -)
-  archives=$(echo $meta | xmllint --xpath "/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::DownloadableArchives/text()" - 2> /dev/null)
+  version_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()"
+  version=$(echo $meta | xmllint --xpath "${version_path}" -)
+
+  archives_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::DownloadableArchives/text()"
+  archives=$(echo $meta | xmllint --xpath "${archives_path}" - 2> /dev/null)
 
   if [ $? -eq 0 ]; then
     archives=$(echo $archives | sed 's:, : :g' | sed "s/[^ ]* */${version}&/g")
