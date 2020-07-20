@@ -67,7 +67,12 @@ package_archives() {
   meta=$(curl -s $meta_url)
 
   version_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()"
-  version=$(echo $meta | xmllint --xpath "${version_path}" -)
+  version=$(echo $meta | xmllint --xpath "${version_path}" - 2> /dev/null)
+
+  if [ $? -ne 0 ]; then
+    echo ""
+    return
+  fi
 
   archives_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::DownloadableArchives/text()"
   archives=$(echo $meta | xmllint --xpath "${archives_path}" - 2> /dev/null)
@@ -80,6 +85,65 @@ package_archives() {
   fi
 }
 
+download_archives() {
+  local repo_url=$1
+  local meta_url=$2
+  local all_package_names=$3
+  local destination=$4
+
+  all_downloads=""
+
+  for package_name in $all_package_names
+  do
+    all_archive_names="$(package_archives $meta_url $package_name)"
+
+    for archive_name in $all_archive_names
+    do
+      package_url="${repo_url}/${package_name}/${archive_name}"
+      dest_uri="${destination}/${archive_name}"
+
+      # download these in parrelel &
+      curl -s -L $package_url --output $dest_uri &
+
+      all_downloads="$dest_uri $all_downloads"
+    done
+  done
+
+  # wait for downloads
+  wait
+
+  echo $all_downloads
+}
+
+unpack() {
+  local archive_paths=$1
+  local destination=$2
+
+  for download in $archive_paths
+  do
+    # brew install p7zip required. Though apple Archive Utility app seems to work
+    # but need to reproduce file unzipping over the top. Also need to look at ubuntu
+    7z x -aoa -bd -y "${download}" -o"${destination}" 1> /dev/null
+  done
+}
+
+write_config() {
+  local directory=$1
+
+  # qt.conf
+  qt_conf="${directory}/bin/qt.conf"
+
+  echo "[Paths]" >> "${qt_conf}"
+  echo "Prefix=.." >> "${qt_conf}"
+
+  # qtconfig.pri
+  qtconfig_pri="${directory}/mkspecs/qconfig.pri"
+  cat "${qtconfig_pri}" \
+    | sed -e "s/QT_EDITION = .*/QT_EDITION = OpenSource/" \
+    | sed -e "s/QT_LICHECK = .*/QT_LICHECK =/" \
+    > "${qtconfig_pri}"
+}
+
 main() {
   local install_type=$1
   local version=$2
@@ -90,7 +154,7 @@ main() {
 
   # cleanup on failures
   trap "rm -rf $tmp_dir" EXIT
-  trap "rm -rf $download_path" ERR
+  trap "rm -rf $download_path/*" ERR
 
   # drop the -dev from the version number (if exists)
   number=${version%"-dev"}
@@ -109,25 +173,25 @@ main() {
   # all_package_names="$(packages $meta_url)"
   all_package_names="qt.qt${major}.${mushed}.$(compiler) qt.${mushed}.$(compiler)"
 
-  for package_name in $all_package_names
-  do
-    all_archive_names="$(package_archives $meta_url $package_name)"
+  # build dev version
+  # qt.qt5.5142.debug_info qt.qt5.5142.debug_info.clang_64
+  if [[ $version == *"-dev" ]]; then
+    all_package_names="$all_package_names qt.qt${major}.${mushed}.debug_info"
+    all_package_names="$all_package_names qt.qt${major}.${mushed}.debug_info.$(compiler)"
+    all_package_names="$all_package_names qt.${mushed}.debug_info"
+    all_package_names="$all_package_names qt.${mushed}.debug_info.$(compiler)"
+  fi
 
-    for archive_name in $all_archive_names
-    do
-      package_url="${repo_url}/${package_name}/${archive_name}"
-      dest_uri="${tmp_dir}/${archive_name}"
-      # should download these in parrelel
-      curl -L $package_url --output $dest_uri
-      # brew install p7zip required. Though apple Archive Utility app seems to work
-      # but need to reproduce file unzipping over the top. Also need to look at ubuntu
-      7z x -aoa -bd -y $dest_uri -o$tmp_dir
-    done
-  done
+  echo "Downloading..."
+  all_downloads=$(download_archives "${repo_url}" "${meta_url}" "${all_package_names}" "${tmp_dir}")
 
-  mv $tmp_dir/$number/$(compiler) $download_path
+  echo "Unpacking..."
+  unpack "${all_downloads}" "${tmp_dir}"
 
-  # aqtinstall also makes some .conf / . ini files at the end
+  echo "Tweaking Configs..."
+  write_config "${tmp_dir}/${number}/$(compiler)"
+
+  mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
 }
 
 if [ -z "$ASDF_INSTALL_TYPE" ]; then
