@@ -45,4 +45,29 @@ main() {
   fi
 }
 
+if [ -z "$ASDF_INSTALL_TYPE" ]; then
+  echo "ASDF_INSTALL_TYPE enviroment variable required"
+  exit 1
+fi
+
+  if [ -z "$ASDF_INSTALL_VERSION" ]; then
+  echo "ASDF_INSTALL_VERSION enviroment variable required"
+  exit 1
+fi
+
+  if [ -z "$ASDF_INSTALL_PATH" ]; then
+  echo "ASDF_INSTALL_PATH enviroment variable required"
+  exit 1
+fi
+
+if [ -z "$ASDF_DOWNLOAD_PATH" ]; then
+  echo "ASDF_DOWNLOAD_PATH enviroment variable required"
+  exit 1
+fi
+
+if [ -z "$ASDF_CONCURRENCY" ]; then
+  echo "ASDF_CONCURRENCY enviroment variable required"
+  exit 1
+fi
+
 main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_DOWNLOAD_PATH $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
