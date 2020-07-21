@@ -35,9 +35,9 @@ main() {
   local install_path=$4
   local n_cores=$5
 
-  if [[ $install_type == "ref" ]]; then
+  if [ "$install_type" = "version" ]; then
     mv "${download_path}"/* "${install_path}"
-  elif [[ $install_type == "ref" ]]; then
+  elif [ "$install_type" = "ref" ]; then
     install "${download_path}" "${install_path}" "${n_cores}"
   else
     echo "Unknown install type: $install_type"

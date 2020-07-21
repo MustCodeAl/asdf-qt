@@ -216,12 +216,12 @@ main() {
   local install_path=$3
   local download_path=$4
 
-  if [[ $install_type == "version" ]]; then
+  if [ "$install_type" = "version" ]; then
     download_binary "$version" "$download_path"
-  elif [[ $install_type == "ref" ]]; then
+  elif [ $"install_type" = "ref" ]; then
     download_src "$version" "$download_path"
   else
-    echo "Unknown install type: $install_type"
+    echo "Unknown download type: $install_type"
     exit 1
   fi
 }
