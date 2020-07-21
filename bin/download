@@ -144,11 +144,9 @@ write_config() {
     > "${qtconfig_pri}"
 }
 
-main() {
-  local install_type=$1
-  local version=$2
-  local install_path=$3
-  local download_path=$4
+download_binary() {
+  local version=$1
+  local download_path=$2
 
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
@@ -192,6 +190,40 @@ main() {
   write_config "${tmp_dir}/${number}/$(compiler)"
 
   mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
+}
+
+download_src() {
+  local version=$1
+  local download_path=$2
+
+  tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
+
+  # cleanup on failures
+  trap "rm -rf $tmp_dir" EXIT
+  trap "rm -rf $download_path" ERR
+
+  git clone git://code.qt.io/qt/qt5.git $tmp_dir
+  cd $tmp_dir
+  git checkout "${version}"
+  perl init-repository -f
+
+  mv "${tmp_dir}"/* "${download_path}"
+}
+
+main() {
+  local install_type=$1
+  local version=$2
+  local install_path=$3
+  local download_path=$4
+
+  if [[ $install_type == "version" ]]; then
+    download_binary "$version" "$download_path"
+  elif [[ $install_type == "ref" ]]; then
+    download_src "$version" "$download_path"
+  else
+    echo "Unknown install type: $install_type"
+    exit 1
+  fi
 }
 
 if [ -z "$ASDF_INSTALL_TYPE" ]; then
