@@ -139,10 +139,12 @@ write_config() {
 
   # qtconfig.pri
   qtconfig_pri="${directory}/mkspecs/qconfig.pri"
+  qtconfig_tmp="${directory}/mkspecs/qconfig.pri.tmp"
   cat "${qtconfig_pri}" \
     | sed -e "s/QT_EDITION = .*/QT_EDITION = OpenSource/" \
     | sed -e "s/QT_LICHECK = .*/QT_LICHECK =/" \
-    > "${qtconfig_pri}"
+    > "${qtconfig_tmp}"
+  mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 }
 
 download_binary() {
