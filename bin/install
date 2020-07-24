@@ -203,8 +203,7 @@ write_config() {
 
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 
-  # Replace paths in binaries
-  placeholder_path=""
+  # Replace paths in binaries and libs
   if [[ "$(host)" = "mac" ]]; then
     placeholder_path="/Users/qt/work/install"
     binaries="QtCore QtCore_debug"
@@ -217,21 +216,26 @@ write_config() {
         echo "Skipping ${binary_path}" 1>&2
       fi
     done
+
+    for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
+      echo "Tweaking ${library_path}" 1>&2
+      sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+    done
   elif [[ "$(host)" = "linux" ]]; then
     placeholder_path="/home/qt/work/install"
     for binary_path in "${directory}/lib"/libQt?Core.so*; do
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "${placeholder_path}" "${install_path}"
     done
+
+    for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
+      echo "Tweaking ${library_path}" 1>&2
+      sed -i "s:${placeholder_path}:${install_path}:g" "${library_path}"
+    done
   else
     echo "Not implemented" >&2
     exit 1
   fi
-
-  for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
-    echo "Tweaking ${library_path}" 1>&2
-    sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
-  done
 }
 
 download_binary() {
