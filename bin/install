@@ -228,7 +228,7 @@ write_config() {
     exit 1
   fi
 
-  for library_path in "${directory}/lib"/{**.pc,**.la}; do
+  for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
     echo "Tweaking ${library_path}" 1>&2
     sed -i "s/${placeholder_path}/${install_path}/g" "${library_path}"
   done
