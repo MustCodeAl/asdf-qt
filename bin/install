@@ -130,13 +130,58 @@ unpack() {
   done
 }
 
+# Thanks Johan!
+# https://everydaywithlinux.blogspot.com/2012/11/patch-strings-in-binary-files-with-sed.html
+patch_binary() {
+    local bin_path="$1"
+    local pattern="$2"
+    local replacement="$3"
+
+    # Find all unique strings in bin_path that contain the pattern
+    matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r)
+
+    if [ "${matches}" != "" ] ; then
+        echo "File '${bin_path}' contain strings with '${pattern}' in them:" 1>&2
+
+        for old in ${matches} ; do
+            # Create the new string with a simple bash-replacement
+            new=${old//${pattern}/${replacement}}
+
+            # Create null terminated ASCII HEX representations of the strings
+            old_hex="$(echo -n ${old} | xxd -g 0 -u -ps -c 256)00"
+            new_hex="$(echo -n ${new} | xxd -g 0 -u -ps -c 256)00"
+
+            if [ ${#new_hex} -le ${#old_hex} ] ; then
+                # Pad the replacement string with null terminations so the
+                # length matches the original string
+                while [ ${#new_hex} -lt ${#old_hex} ] ; do
+                    new_hex="${new_hex}00"
+                done
+
+                # Now, replace every occurrence of old with new
+                echo -n "Replacing ${old} with ${new}... " 1>&2
+                hexdump -ve '1/1 "%.2X"' ${bin_path} | \
+                sed "s/${old_hex}/${new_hex}/g" | \
+                xxd -r -p > ${bin_path}.tmp
+                chmod --reference ${bin_path} ${bin_path}.tmp
+                mv ${bin_path}.tmp ${bin_path}
+                echo "Done!" 1>&2
+            else
+                echo "New string '${new}' is longer than old" \
+                     "string '${old}'. Skipping." 1>&2
+            fi
+        done
+    fi
+}
+
 write_config() {
   local directory=$1
+  local install_path=$2
 
   # qt.conf
   qt_conf="${directory}/bin/qt.conf"
 
-  echo "Tweaking ${qt_config}"
+  echo "Tweaking ${qt_config}" 1>&2
 
   echo "[Paths]" >> "${qt_conf}"
   echo "Prefix=.." >> "${qt_conf}"
@@ -145,18 +190,30 @@ write_config() {
   qtconfig_pri="${directory}/mkspecs/qconfig.pri"
   qtconfig_tmp="${directory}/mkspecs/qconfig.pri.tmp"
 
-  echo "Tweaking ${qtconfig_pri}"
+  echo "Tweaking ${qtconfig_pri}" 1>&2
 
   cat "${qtconfig_pri}" \
     | sed -e "s/QT_EDITION = .*/QT_EDITION = OpenSource/" \
     | sed -e "s/QT_LICHECK = .*/QT_LICHECK =/" \
     > "${qtconfig_tmp}"
+  chmod --reference ${qtconfig_pri} ${qtconfig_tmp}
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
+
+  # TODO: check for every playform
+  binaries="QtCore QtCore_debug"
+  for name in $binaries; do
+    binary_path="${directory}/lib/QtCore.framework/Versions/5/${name}"
+    if [ -f $bin_path ]; then
+      echo "Tweaking ${binary_path}" 1>&2
+      patch_binary "${binary_path}" "/Users/qt/word/install" "${install_path}"
+    fi
+  done
 }
 
 download_binary() {
   local version=$1
   local download_path=$2
+  local install_path=$3
 
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
@@ -199,7 +256,7 @@ download_binary() {
   echo "Extraction complete"
 
   echo "Tweaking Configs..."
-  write_config "${tmp_dir}/${number}/$(compiler)"
+  write_config "${tmp_dir}/${number}/$(compiler)" "${install_path}"
   echo "Tweaked!"
 
   mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
@@ -258,7 +315,7 @@ main() {
   download_path=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
   if [ "$install_type" = "version" ]; then
-    download_binary "$version" "$download_path"
+    download_binary "$version" "$download_path" "$install_path"
     echo "Installing..."
     mv "${download_path}"/* "${install_path}"
     echo "Installed"
