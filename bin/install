@@ -104,6 +104,7 @@ download_archives() {
       dest_uri="${destination}/${archive_name}"
 
       # download these in parrelel &
+      echo "Starting download of archive: ${archive_name}"
       curl -s -L $package_url --output $dest_uri &
 
       all_downloads="$dest_uri $all_downloads"
@@ -124,6 +125,7 @@ unpack() {
   do
     # brew install p7zip required. Though apple Archive Utility app seems to work
     # but need to reproduce file unzipping over the top. Also need to look at ubuntu
+    echo "Extracting ${download}"
     7z x -aoa -bd -y "${download}" -o"${destination}" 1> /dev/null
   done
 }
@@ -134,12 +136,17 @@ write_config() {
   # qt.conf
   qt_conf="${directory}/bin/qt.conf"
 
+  echo "Tweaking ${qt_config}"
+
   echo "[Paths]" >> "${qt_conf}"
   echo "Prefix=.." >> "${qt_conf}"
 
   # qtconfig.pri
   qtconfig_pri="${directory}/mkspecs/qconfig.pri"
   qtconfig_tmp="${directory}/mkspecs/qconfig.pri.tmp"
+
+  echo "Tweaking ${qtconfig_pri}"
+
   cat "${qtconfig_pri}" \
     | sed -e "s/QT_EDITION = .*/QT_EDITION = OpenSource/" \
     | sed -e "s/QT_LICHECK = .*/QT_LICHECK =/" \
@@ -185,12 +192,15 @@ download_binary() {
 
   echo "Downloading..."
   all_downloads=$(download_archives "${repo_url}" "${meta_url}" "${all_package_names}" "${tmp_dir}")
+  echo "Download complete"
 
-  echo "Unpacking..."
+  echo "Extracting..."
   unpack "${all_downloads}" "${tmp_dir}"
+  echo "Extraction complete"
 
   echo "Tweaking Configs..."
   write_config "${tmp_dir}/${number}/$(compiler)"
+  echo "Tweaked!"
 
   mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
 }
@@ -249,7 +259,9 @@ main() {
 
   if [ "$install_type" = "version" ]; then
     download_binary "$version" "$download_path"
+    echo "Installing..."
     mv "${download_path}"/* "${install_path}"
+    echo "Installed"
   elif [ "$install_type" = "ref" ]; then
     download_src "$version" "$download_path"
     install "${download_path}" "${install_path}" "${n_cores}"
