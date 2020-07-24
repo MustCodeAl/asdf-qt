@@ -163,7 +163,6 @@ patch_binary() {
                 hexdump -ve '1/1 "%.2X"' ${bin_path} | \
                 sed "s/${old_hex}/${new_hex}/g" | \
                 xxd -r -p > ${bin_path}.tmp
-                chmod --reference ${bin_path} ${bin_path}.tmp
                 mv ${bin_path}.tmp ${bin_path}
                 echo "Done!" 1>&2
             else
@@ -196,7 +195,7 @@ write_config() {
     | sed -e "s/QT_EDITION = .*/QT_EDITION = OpenSource/" \
     | sed -e "s/QT_LICHECK = .*/QT_LICHECK =/" \
     > "${qtconfig_tmp}"
-  chmod --reference ${qtconfig_pri} ${qtconfig_tmp}
+
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 
   # TODO: check for every playform
