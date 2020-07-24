@@ -65,7 +65,7 @@ package_archives() {
   local meta_url=$1
   local package_name=$2
 
-  echo "Fetching release manifest..."
+  echo "Fetching release manifest..."  1>&2
   meta=$(curl -s $meta_url)
 
   version_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()"
@@ -105,7 +105,7 @@ download_archives() {
       dest_uri="${destination}/${archive_name}"
 
       # download these in parrelel &
-      echo "Starting download of archive: ${archive_name}"
+      echo "Starting download of archive: ${archive_name}" 1>&2
       curl -s -L $package_url --output $dest_uri &
 
       all_downloads="$dest_uri $all_downloads"
