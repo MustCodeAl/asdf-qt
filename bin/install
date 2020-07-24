@@ -180,7 +180,7 @@ write_config() {
   # qt.conf
   qt_conf="${directory}/bin/qt.conf"
 
-  echo "Tweaking ${qt_config}" 1>&2
+  echo "Tweaking ${qt_conf}" 1>&2
 
   echo "[Paths]" >> "${qt_conf}"
   echo "Prefix=.." >> "${qt_conf}"
@@ -201,7 +201,7 @@ write_config() {
   # TODO: check for every platform
   binaries="QtCore QtCore_debug"
   for name in $binaries; do
-    binary_path="${directory}/lib/QtCore.framework/Versions/5/${name}"
+    binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
     if [ -f $bin_path ]; then
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "/Users/qt/word/install" "${install_path}"
