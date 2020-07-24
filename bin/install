@@ -203,6 +203,9 @@ write_config() {
 
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 
+  # and trim install path so things replace right
+  install_path=$(echo $install_path | sed 's:/*$::')
+
   # Replace paths in binaries and libs
   if [[ "$(host)" = "mac" ]]; then
     placeholder_path="/Users/qt/work/install"
