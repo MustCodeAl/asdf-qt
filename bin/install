@@ -112,7 +112,6 @@ download_archives() {
   done
 
   # wait for downloads
-  echo "Waiting for downloads..." 1>&2
   wait
 
   echo $all_downloads
