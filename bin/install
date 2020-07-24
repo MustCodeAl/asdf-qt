@@ -240,8 +240,8 @@ build() {
 main() {
   local install_type=$1
   local version=$2
-  local install_path=$4
-  local n_cores=$5
+  local install_path=$3
+  local n_cores=$4
 
   download_path=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
