@@ -133,45 +133,42 @@ unpack() {
 # Thanks Johan!
 # https://everydaywithlinux.blogspot.com/2012/11/patch-strings-in-binary-files-with-sed.html
 patch_binary() {
-    local bin_path="$1"
-    local pattern="$2"
-    local replacement="$3"
+  local bin_path="$1"
+  local pattern="$2"
+  local replacement="$3"
 
-    echo -n "searching for ${pattern}" 1>&2
-    # Find all unique strings in bin_path that contain the pattern
-    matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r)
+  echo "searching for ${pattern}" 1>&2
+  # Find all unique strings in bin_path that contain the pattern
+  matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r)
 
-    if [ "${matches}" != "" ] ; then
-        echo "File '${bin_path}' contain strings with '${pattern}' in them:" 1>&2
+  if [ "${matches}" != "" ] ; then
+    echo "File '${bin_path}' contain strings with '${pattern}' in them:" 1>&2
 
-        for old in ${matches} ; do
-            # Create the new string with a simple bash-replacement
-            new=${old//${pattern}/${replacement}}
+    for old in ${matches} ; do
+      # Create the new string with a simple bash-replacement
+      new=${old//${pattern}/${replacement}}
 
-            # Create null terminated ASCII HEX representations of the strings
-            old_hex="$(echo -n ${old} | xxd -g 0 -u -ps -c 256)00"
-            new_hex="$(echo -n ${new} | xxd -g 0 -u -ps -c 256)00"
+      # Create null terminated ASCII HEX representations of the strings
+      old_hex="$(echo -n ${old} | xxd -g 0 -u -ps -c 256)00"
+      new_hex="$(echo -n ${new} | xxd -g 0 -u -ps -c 256)00"
 
-            if [ ${#new_hex} -le ${#old_hex} ] ; then
-                # Pad the replacement string with null terminations so the
-                # length matches the original string
-                while [ ${#new_hex} -lt ${#old_hex} ] ; do
-                    new_hex="${new_hex}00"
-                done
-
-                # Now, replace every occurrence of old with new
-                echo -n "Replacing ${old} with ${new}... " 1>&2
-                hexdump -ve '1/1 "%.2X"' ${bin_path} | \
-                sed "s/${old_hex}/${new_hex}/g" | \
-                xxd -r -p > ${bin_path}.tmp
-                mv ${bin_path}.tmp ${bin_path}
-                echo "Done!" 1>&2
-            else
-                echo "New string '${new}' is longer than old" \
-                     "string '${old}'. Skipping." 1>&2
-            fi
+      if [ ${#new_hex} -le ${#old_hex} ] ; then
+        # Pad the replacement string with null terminations so the
+        # length matches the original string
+        while [ ${#new_hex} -lt ${#old_hex} ] ; do
+            new_hex="${new_hex}00"
         done
-    fi
+      fi
+
+      # Now, replace every occurrence of old with new
+      echo -n "Replacing ${old} with ${new}... " 1>&2
+      hexdump -ve '1/1 "%.2X"' ${bin_path} | \
+      sed "s/${old_hex}/${new_hex}/g" | \
+      xxd -r -p > ${bin_path}.tmp
+      mv ${bin_path}.tmp ${bin_path}
+      echo "Done!" 1>&2
+    done
+  fi
 }
 
 write_config() {
