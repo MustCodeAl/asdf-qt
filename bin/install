@@ -245,16 +245,16 @@ main() {
 
   download_path=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
-  if [ "$install_type" = "version" ]; then
-    download_binary "$version" "$download_path"
-    mv "${download_path}"/* "${install_path}"
-  elif [ "$install_type" = "ref" ]; then
-    download_src "$version" "$download_path"
-    install "${download_path}" "${install_path}" "${n_cores}"
-  else
-    echo "Unknown install type: $install_type"
-    exit 1
-  fi
+  # if [ "$install_type" = "version" ]; then
+  download_binary "$version" "$download_path"
+  mv "${download_path}"/* "${install_path}"
+  # elif [ "$install_type" = "ref" ]; then
+  #   download_src "$version" "$download_path"
+  #   install "${download_path}" "${install_path}" "${n_cores}"
+  # else
+  #   echo "Unknown install type: $install_type"
+  #   exit 1
+  # fi
 }
 
 if [ -z "$ASDF_INSTALL_TYPE" ]; then
