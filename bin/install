@@ -65,7 +65,6 @@ package_archives() {
   local meta_url=$1
   local package_name=$2
 
-  echo "Fetching release manifest..."  1>&2
   meta=$(curl -s $meta_url)
 
   version_path="/Updates/PackageUpdate/Name[text()=\"${package_name}\"]/following-sibling::Version/text()"
