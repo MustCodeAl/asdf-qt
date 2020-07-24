@@ -198,7 +198,7 @@ write_config() {
 
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 
-  # TODO: check for every playform
+  # TODO: check for every platform
   binaries="QtCore QtCore_debug"
   for name in $binaries; do
     binary_path="${directory}/lib/QtCore.framework/Versions/5/${name}"
