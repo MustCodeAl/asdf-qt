@@ -218,7 +218,7 @@ write_config() {
   elif [[ "$(host)" = "linux" ]]; then
     for binary_path in "${directory}/lib"/libQt?Core.so*; do
       echo "Tweaking ${binary_path}" 1>&2
-      patch_binary "${binary_path}" "/Users/qt/work/install" "${install_path}"
+      patch_binary "${binary_path}" "/home/qt/work/install" "${install_path}"
     done
   else
     echo "Not implemented" >&2
