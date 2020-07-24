@@ -209,6 +209,9 @@ write_config() {
   # Replace paths in binaries and libs
   if [[ "$(host)" = "mac" ]]; then
     placeholder_path="/Users/qt/work/install"
+
+    patch_binary "${directory}/bin/qmake" "${placeholder_path}" "${install_path}"
+
     binaries="QtCore QtCore_debug"
     for name in $binaries; do
       binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
@@ -226,6 +229,9 @@ write_config() {
     done
   elif [[ "$(host)" = "linux" ]]; then
     placeholder_path="/home/qt/work/install"
+
+    patch_binary "${directory}/bin/qmake" "${placeholder_path}" "${install_path}"
+
     for binary_path in "${directory}/lib"/libQt?Core.so*; do
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "${placeholder_path}" "${install_path}"
