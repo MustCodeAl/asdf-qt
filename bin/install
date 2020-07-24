@@ -207,7 +207,7 @@ write_config() {
   binaries="QtCore QtCore_debug"
   for name in $binaries; do
     binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
-    if [ -f $bin_path ]; then
+    if [ -f "$binary_path" ]; then
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "/Users/qt/work/install" "${install_path}"
     else
