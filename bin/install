@@ -137,6 +137,7 @@ patch_binary() {
     local pattern="$2"
     local replacement="$3"
 
+    echo -n "searching for ${pattern}" 1>&2
     # Find all unique strings in bin_path that contain the pattern
     matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r)
 
