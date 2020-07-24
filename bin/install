@@ -203,17 +203,27 @@ write_config() {
 
   mv -f "${qtconfig_tmp}" "${qtconfig_pri}"
 
-  # TODO: check for every platform
-  binaries="QtCore QtCore_debug"
-  for name in $binaries; do
-    binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
-    if [ -f "$binary_path" ]; then
+  # Replace paths in binaries
+  if [[ "$(host)" = "mac" ]]; then
+    binaries="QtCore QtCore_debug"
+    for name in $binaries; do
+      binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
+      if [ -f "$binary_path" ]; then
+        echo "Tweaking ${binary_path}" 1>&2
+        patch_binary "${binary_path}" "/Users/qt/work/install" "${install_path}"
+      else
+        echo "Skipping ${binary_path}" 1>&2
+      fi
+    done
+  elif [[ "$(host)" = "linux" ]]; then
+    for binary_path in "${directory}/lib"/libQt?Core.so*; do
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "/Users/qt/work/install" "${install_path}"
-    else
-      echo "Skipping ${binary_path}" 1>&2
-    fi
-  done
+    done
+  else
+    echo "Not implemented" >&2
+    exit 1
+  fi
 }
 
 download_binary() {
