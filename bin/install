@@ -205,7 +205,7 @@ write_config() {
     binary_path="${directory}/lib/QtCore.framework/Versions/Current/${name}"
     if [ -f $bin_path ]; then
       echo "Tweaking ${binary_path}" 1>&2
-      patch_binary "${binary_path}" "/Users/qt/word/install" "${install_path}"
+      patch_binary "${binary_path}" "/Users/qt/work/install" "${install_path}"
     else
       echo "Skipping ${binary_path}" 1>&2
     fi
