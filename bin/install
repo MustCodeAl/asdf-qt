@@ -158,6 +158,13 @@ patch_binary() {
         while [ ${#new_hex} -lt ${#old_hex} ] ; do
             new_hex="${new_hex}00"
         done
+      else
+        # Pad the original string with null terminations so the
+        # length matches the replacment string
+        # Warning: Here lies dragons and potential overflow...
+        while [ ${#old_hex} -lt ${#new_hex} ] ; do
+            old_hex="${old_hex}00"
+        done
       fi
 
       # Now, replace every occurrence of old with new
