@@ -205,6 +205,8 @@ write_config() {
     if [ -f $bin_path ]; then
       echo "Tweaking ${binary_path}" 1>&2
       patch_binary "${binary_path}" "/Users/qt/word/install" "${install_path}"
+    else
+      echo "Skipping ${binary_path}" 1>&2
     fi
   done
 }
