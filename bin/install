@@ -137,9 +137,9 @@ patch_binary() {
   local pattern="$2"
   local replacement="$3"
 
-  echo "searching for ${pattern}" 1>&2
+  echo "searching for ${pattern} in ${bin_path}" 1>&2
   # Find all unique strings in bin_path that contain the pattern
-  matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r)
+  matches=$(strings ${bin_path} | grep ${pattern} | sort -u -r || echo "")
 
   if [ "${matches}" != "" ] ; then
     echo "File '${bin_path}' contain strings with '${pattern}' in them:" 1>&2
@@ -207,6 +207,7 @@ write_config() {
   install_path=$(echo $install_path | sed 's:/*$::')
 
   # Replace paths in binaries and libs
+  # Doesn't seem nessisary in 5.14+
   if [[ "$(host)" = "mac" ]]; then
     placeholder_path="/Users/qt/work/install"
 
