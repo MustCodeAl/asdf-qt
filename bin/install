@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
-set -eE
+set -e
 set -o pipefail
 
+trap "exit 1" 10
+PROC=$$
+
+fatal(){
+  echo "$@" >&2
+  kill -10 $PROC
+}
 
 host() {
   if [[ "$(uname)" = "Darwin" ]]; then
@@ -10,8 +17,7 @@ host() {
   elif [[ "$(uname)" = "Linux" ]]; then
     echo "linux"
   else
-    echo "Unsupported platform: $(uname)" >&2
-    exit 1
+    fatal "Unsupported platform: $(uname)"
   fi
 }
 
@@ -21,8 +27,7 @@ arch() {
   elif [[ "$(uname -m)" = "x86_64" ]]; then
     echo "x64"
   else
-    echo "Unsupported architecture: $(uname -m)." >&2
-    exit 1
+    fatal "Unsupported architecture: $(uname -m)."
   fi
 }
 
@@ -38,8 +43,7 @@ compiler() {
   elif [[ "$(host)" = "linux" && "$(arch)" = "x64" ]]; then
     echo "gcc_64"
   else
-    echo "Unknown compiler choice" >&2
-    exit 1
+    fatal "Unknown compiler choice"
   fi
 }
 
@@ -243,8 +247,7 @@ write_config() {
       sed -i "s:${placeholder_path}:${install_path}:g" "${library_path}"
     done
   else
-    echo "Not implemented" >&2
-    exit 1
+    fatal "Not implemented"
   fi
 }
 
@@ -265,6 +268,9 @@ download_binary() {
   major=${number%%.*}
   # drop all the points (5.11.3 -> 5113)
   mushed=${number//.}
+
+  arch_=arch
+  echo "hello ${arch_}"
 
   # Make report and meta data endpoints
   base_url="https://download.qt.io/online/qtsdkrepository"
@@ -361,29 +367,24 @@ main() {
     download_src "$version" "$download_path"
     install "${download_path}" "${install_path}" "${n_cores}"
   else
-    echo "Unknown install type: $install_type"
-    exit 1
+    fatal "Unknown install type: $install_type"
   fi
 }
 
 if [ -z "$ASDF_INSTALL_TYPE" ]; then
-  echo "ASDF_INSTALL_TYPE enviroment variable required"
-  exit 1
+  fatal "ASDF_INSTALL_TYPE enviroment variable required"
 fi
 
   if [ -z "$ASDF_INSTALL_VERSION" ]; then
-  echo "ASDF_INSTALL_VERSION enviroment variable required"
-  exit 1
+  fatal "ASDF_INSTALL_VERSION enviroment variable required"
 fi
 
   if [ -z "$ASDF_INSTALL_PATH" ]; then
-  echo "ASDF_INSTALL_PATH enviroment variable required"
-  exit 1
+  fatal "ASDF_INSTALL_PATH enviroment variable required"
 fi
 
 if [ -z "$ASDF_CONCURRENCY" ]; then
-  echo "ASDF_CONCURRENCY enviroment variable required"
-  exit 1
+  fatal "ASDF_CONCURRENCY enviroment variable required"
 fi
 
 main $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH $ASDF_CONCURRENCY
