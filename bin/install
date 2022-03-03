@@ -269,12 +269,12 @@ download_binary() {
   # drop all the points (5.11.3 -> 5113)
   mushed=${number//.}
 
-  # Make report and meta data endpoints
+  # make report and meta data endpoints
   base_url="https://download.qt.io/online/qtsdkrepository"
   repo_url="${base_url}/$(host)_$(arch)/$(target)/qt${major}_${mushed}"
   meta_url="${repo_url}/Updates.xml"
 
-  # aqtinstall just targets by default 'qt.qt5.5113.clang_64', 'qt.5113.clang_64'
+  # install just targets by default 'qt.qt5.5113.clang_64', 'qt.5113.clang_64'
   # so maybe other packages are optional enviroment vars ASDF_QT_*
   # all_package_names="$(packages $meta_url)"
   all_package_names="qt.qt${major}.${mushed}.$(compiler) qt.${mushed}.$(compiler)"
