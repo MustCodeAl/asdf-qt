@@ -362,7 +362,7 @@ main() {
     echo "Installed"
   elif [ "$install_type" = "ref" ]; then
     download_src "$version" "$download_path"
-    install "${download_path}" "${install_path}" "${n_cores}"
+    build "${download_path}" "${install_path}" "${n_cores}"
   else
     fatal "Unknown install type: $install_type"
   fi
