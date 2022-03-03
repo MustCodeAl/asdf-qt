@@ -372,11 +372,11 @@ if [ -z "$ASDF_INSTALL_TYPE" ]; then
   fatal "ASDF_INSTALL_TYPE enviroment variable required"
 fi
 
-  if [ -z "$ASDF_INSTALL_VERSION" ]; then
+if [ -z "$ASDF_INSTALL_VERSION" ]; then
   fatal "ASDF_INSTALL_VERSION enviroment variable required"
 fi
 
-  if [ -z "$ASDF_INSTALL_PATH" ]; then
+if [ -z "$ASDF_INSTALL_PATH" ]; then
   fatal "ASDF_INSTALL_PATH enviroment variable required"
 fi
 
