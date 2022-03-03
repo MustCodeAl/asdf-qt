@@ -269,9 +269,6 @@ download_binary() {
   # drop all the points (5.11.3 -> 5113)
   mushed=${number//.}
 
-  arch_=arch
-  echo "hello ${arch_}"
-
   # Make report and meta data endpoints
   base_url="https://download.qt.io/online/qtsdkrepository"
   repo_url="${base_url}/$(host)_$(arch)/$(target)/qt${major}_${mushed}"
