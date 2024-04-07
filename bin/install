@@ -26,6 +26,9 @@ arch() {
     echo "x86"
   elif [[ "$(uname -m)" = "x86_64" ]]; then
     echo "x64"
+  elif [[ "$(uname -m)" = "arm64" ]]; then
+    echo "arm64"
+
   else
     fatal "Unsupported architecture: $(uname -m)."
   fi
@@ -38,6 +41,8 @@ target() {
 compiler() {
   if [[ "$(host)" = "mac" ]]; then
     echo "clang_64"
+  elif [[ "$(host)" = "mac" && "$(arch)" = "arm64" ]]; then
+    echo "clang"
   elif [[ "$(host)" = "linux" && "$(arch)" = "x86" ]]; then
     echo "gcc"
   elif [[ "$(host)" = "linux" && "$(arch)" = "x64" ]]; then
