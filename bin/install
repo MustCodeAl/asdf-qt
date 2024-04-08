@@ -189,10 +189,12 @@ write_config() {
   # qt.conf
   qt_conf="${directory}/bin/qt.conf"
 
-  echo "Tweaking ${qt_conf}" 1>&2
-
-  echo "[Paths]" >> "${qt_conf}"
-  echo "Prefix=.." >> "${qt_conf}"
+  # qt.conf does not apear to exist in 6.X
+  if [ -f $qt_conf ]; then
+    echo "Tweaking ${qt_conf}" 1>&2
+    echo "[Paths]" >> "${qt_conf}"
+    echo "Prefix=.." >> "${qt_conf}"
+  fi
 
   # qtconfig.pri
   qtconfig_pri="${directory}/mkspecs/qconfig.pri"
