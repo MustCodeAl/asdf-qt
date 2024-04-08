@@ -231,8 +231,10 @@ write_config() {
     done
 
     for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
-      echo "Tweaking ${library_path}" 1>&2
-      sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      if [ -f "$library_path" ]; then
+        echo "Tweaking ${library_path}" 1>&2
+        sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      fi
     done
   elif [[ "$(host)" = "linux" ]]; then
     placeholder_path="/home/qt/work/install"
@@ -245,8 +247,10 @@ write_config() {
     done
 
     for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
-      echo "Tweaking ${library_path}" 1>&2
-      sed -i "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      if [ -f "$library_path" ]; then
+        echo "Tweaking ${library_path}" 1>&2
+        sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      fi
     done
   else
     fatal "Not implemented"
