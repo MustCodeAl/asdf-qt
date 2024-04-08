@@ -261,8 +261,8 @@ download_binary() {
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
   # cleanup on failures
-  trap "rm -rf $tmp_dir" EXIT
-  trap "rm -rf $download_path/*" ERR
+  # trap "rm -rf $tmp_dir" EXIT
+  # trap "rm -rf $download_path/*" ERR
 
   # drop the -dev from the version number (if exists)
   number=${version%"-dev"}
@@ -298,15 +298,17 @@ download_binary() {
   unpack "${all_downloads}" "${tmp_dir}"
   echo "Extraction complete"
 
+  abritrary_dir=$(ls ${tmp_dir}/${number})
+
   echo "Tweaking Configs..."
-  write_config "${tmp_dir}/${number}/$(compiler)" "${install_path}"
+  write_config "${tmp_dir}/${number}/${abritrary_dir}" "${install_path}"
   echo "Tweaked!"
 
   # make sure qmake is always executable... sometimes it's not:
   # re: https://github.com/jamesstidard/asdf-qt/issues/2
-  chmod +x "${tmp_dir}/${number}/$(compiler)/bin/qmake"
+  chmod +x "${tmp_dir}/${number}/${abritrary_dir}/bin/qmake"
 
-  mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
+  mv "${tmp_dir}/${number}/${abritrary_dir}"/* "${download_path}"
 }
 
 download_src() {
