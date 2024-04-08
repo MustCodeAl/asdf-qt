@@ -300,6 +300,10 @@ download_binary() {
   write_config "${tmp_dir}/${number}/$(compiler)" "${install_path}"
   echo "Tweaked!"
 
+  # make sure qmake is always executable... sometimes it's not:
+  # re: https://github.com/jamesstidard/asdf-qt/issues/2
+  chmod +x "${tmp_dir}/${number}/$(compiler)/bin/qmake"
+
   mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
 }
 
