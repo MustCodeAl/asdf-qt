@@ -194,10 +194,12 @@ write_config() {
   # qt.conf
   qt_conf="${directory}/bin/qt.conf"
 
-  echo "Tweaking ${qt_conf}" 1>&2
-
-  echo "[Paths]" >> "${qt_conf}"
-  echo "Prefix=.." >> "${qt_conf}"
+  # qt.conf does not apear to exist in 6.X
+  if [ -f $qt_conf ]; then
+    echo "Tweaking ${qt_conf}" 1>&2
+    echo "[Paths]" >> "${qt_conf}"
+    echo "Prefix=.." >> "${qt_conf}"
+  fi
 
   # qtconfig.pri
   qtconfig_pri="${directory}/mkspecs/qconfig.pri"
@@ -234,8 +236,10 @@ write_config() {
     done
 
     for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
-      echo "Tweaking ${library_path}" 1>&2
-      sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      if [ -f "$library_path" ]; then
+        echo "Tweaking ${library_path}" 1>&2
+        sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      fi
     done
   elif [[ "$(host)" = "linux" ]]; then
     placeholder_path="/home/qt/work/install"
@@ -248,8 +252,10 @@ write_config() {
     done
 
     for library_path in "${directory}/lib"/{*/*.pc,*.la}; do
-      echo "Tweaking ${library_path}" 1>&2
-      sed -i "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      if [ -f "$library_path" ]; then
+        echo "Tweaking ${library_path}" 1>&2
+        sed -i '' "s:${placeholder_path}:${install_path}:g" "${library_path}"
+      fi
     done
   else
     fatal "Not implemented"
@@ -264,8 +270,8 @@ download_binary() {
   tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/asdf-qt-XXXXXXXXXX")
 
   # cleanup on failures
-  trap "rm -rf $tmp_dir" EXIT
-  trap "rm -rf $download_path/*" ERR
+  # trap "rm -rf $tmp_dir" EXIT
+  # trap "rm -rf $download_path/*" ERR
 
   # drop the -dev from the version number (if exists)
   number=${version%"-dev"}
@@ -301,11 +307,17 @@ download_binary() {
   unpack "${all_downloads}" "${tmp_dir}"
   echo "Extraction complete"
 
+  abritrary_dir=$(ls ${tmp_dir}/${number})
+
   echo "Tweaking Configs..."
-  write_config "${tmp_dir}/${number}/$(compiler)" "${install_path}"
+  write_config "${tmp_dir}/${number}/${abritrary_dir}" "${install_path}"
   echo "Tweaked!"
 
-  mv "${tmp_dir}/${number}/$(compiler)"/* "${download_path}"
+  # make sure qmake is always executable... sometimes it's not:
+  # re: https://github.com/jamesstidard/asdf-qt/issues/2
+  chmod +x "${tmp_dir}/${number}/${abritrary_dir}/bin/qmake"
+
+  mv "${tmp_dir}/${number}/${abritrary_dir}"/* "${download_path}"
 }
 
 download_src() {
